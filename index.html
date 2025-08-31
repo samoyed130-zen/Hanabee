@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hanabee</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+    .chip { box-shadow: 0 6px 24px rgba(0,0,0,.25); }
+    canvas { display:block; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-dvh">
+  <!-- Boot/runtime error bar (hidden by default) -->
+  <div id="bootError" style="display:none" class="z-50 fixed top-0 left-0 right-0 px-4 py-2 bg-red-600 text-white text-xs">
+    Error: <span id="bootErrorMsg"></span>
+  </div>
+
+  <!-- Header -->
+  <header class="max-w-5xl mx-auto px-4 py-4">
+    <h1 id="siteTitle" class="text-xl font-bold tracking-wide">Hanabee</h1>
+  </header>
+
+  <!-- Main Stage -->
+  <main class="relative max-w-5xl mx-auto px-4">
+    <div class="relative rounded-xl overflow-hidden ring-1 ring-white/10">
+      <canvas id="stage" class="w-full aspect-[16/9] bg-slate-900"></canvas>
+      <!-- particles layer for effects -->
+      <div id="particles" class="pointer-events-none absolute inset-0"></div>
+
+      <!-- Solo HUD chip -->
+      <div class="absolute top-3 left-1/2 -translate-x-1/2">
+        <div id="hudChip" class="chip inline-flex items-center gap-5 bg-black/40 backdrop-blur px-4 md:px-6 py-2 md:py-2.5 rounded-full text-xs border border-white/10">
+          <!-- Unified two-row HUD: TIME + SCORE/COMBO -->
+          <div class="flex items-end gap-6">
+            <!-- TIME column -->
+            <div class="flex flex-col">
+              <span class="text-base md:text-xl font-bold tracking-wide">TIME</span>
+              <span class="text-base md:text-xl font-bold tracking-wide">
+                <span id="uiTime" class="tabular-nums">060</span>s
+              </span>
+            </div>
+            <!-- SCORE & COMBO two-row block (grid-based, left-aligned, combo x00 before gauge) -->
+            <div class="grid grid-cols-[auto,1fr] gap-x-8 min-w-[22rem] md:min-w-[28rem]">
+              <!-- Row 1: labels (both left-aligned) -->
+              <span class="text-base md:text-xl font-bold tracking-wide">SCORE</span>
+              <span class="text-base md:text-xl font-bold tracking-wide" id="comboLabel">COMBO</span>
+
+              <!-- Row 2: values -->
+              <span id="uiScore" class="tabular-nums text-base md:text-xl font-bold tracking-wide">00000000</span>
+              <div class="flex items-center gap-2">
+                <!-- x00 (tighter) -->
+                <span id="comboWrap" class="inline-flex items-baseline tabular-nums text-base md:text-xl font-bold tracking-wide">
+                  <span id="comboX">x</span><span id="uiCombo" class="ml-0.5">00</span>
+                </span>
+                <!-- gauge (moved to the right of x00) -->
+                <div class="h-[1.2em] md:h-[1.4em] w-28 md:w-44 bg-white/20 rounded-full overflow-hidden">
+                  <div id="comboGaugeFill" class="h-full bg-emerald-400 transition-all duration-200 ease-linear" style="width:0%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Start/Restart button -->
+          <button id="btnStart" class="ml-2 px-3 md:px-5 py-1.5 md:py-2 rounded bg-emerald-600 hover:bg-emerald-500 text-sm md:text-base">Restart</button>
+        </div>
+      </div>
+
+      <!-- Overlay (Result/Start) -->
+      <div id="overlay" class="hidden absolute inset-0 grid place-items-center bg-black/50">
+        <div class="bg-slate-800/90 border border-white/10 rounded-2xl p-6 text-center max-w-lg w-[min(92vw,36rem)]">
+          <h2 id="ovTitle" class="text-lg font-bold mb-1">Result</h2>
+          <p id="ovMsg" class="text-slate-300 text-sm mb-2">おつかれさま！</p>
+          <div id="ovStats" class="hidden text-sm mb-3 space-y-1"></div>
+          <!-- Player name input -->
+          <div id="nameRow" class="mb-4 text-sm">
+            <div class="mb-1 opacity-80">名前を入力してください。</div>
+            <input id="playerName" type="text" maxlength="16" placeholder="名前を入力してください。"
+              class="w-full px-3 py-1.5 rounded-md bg-slate-700/70 border border-white/10 focus:outline-none focus:ring-1 focus:ring-fuchsia-400" />
+          </div>
+          <button id="ovStart" class="px-4 py-2 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500">Restart</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="max-w-5xl mx-auto px-4 py-6 text-xs text-slate-400">
+    <!-- 外部ライブラリ禁止ルール準拠：HTML + CSS (Tailwind CDN) + JS のみ。 -->
+  </footer>
+
+  <script>
+    // Show any uncaught errors on screen for quick diagnosis
+    window.addEventListener('error', function(e){
+      var bar = document.getElementById('bootError');
+      var msg = document.getElementById('bootErrorMsg');
+      if(bar && msg){
+        bar.style.display = 'block';
+        msg.textContent = (e && e.message) ? e.message : String(e);
+      }
+    });
+  </script>
+  <script src="./scripts/main.js?v=dev" defer></script>
+</body>
+</html>
