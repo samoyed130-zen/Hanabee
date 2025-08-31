@@ -5,6 +5,7 @@
 HTML / CSS / JavaScript で制作しました。
 
 👉 [こちらから遊べます](https://samoyed130-zen.github.io/Hanabee/)
+👉 [GASのリーダーボードはこちら](./gas)
 
 ---
 
