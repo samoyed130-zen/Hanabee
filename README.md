@@ -2,7 +2,7 @@
 
 ブラウザで遊べる花火の連鎖ゲームです。  
 クリックで花火を爆発させ、連鎖をつなげてスコアを競います。  
-HTML / CSS / JavaScript で制作しました。
+JavaScript (Canvas API) を中心に制作し、ビジュアルや動きはすべて JS 側で描画しています。CSS はレイアウトや文字装飾など補助的に利用しています。
 
 👉 [こちらから遊べます](https://samoyed130-zen.github.io/Hanabee/)
 👉 [GASのリーダーボードはこちら](./gas)
