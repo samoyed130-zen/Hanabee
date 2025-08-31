@@ -4,6 +4,8 @@
 クリックで花火を爆発させ、連鎖をつなげてスコアを競います。  
 HTML / CSS / JavaScript で制作しました。
 
+👉 [こちらから遊べます](https://samoyed130-zen.github.io/Hanabee/)
+
 ---
 
 ## ゲーム概要
