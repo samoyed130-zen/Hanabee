@@ -1,0 +1,6 @@
+.gitignore# macOS 特有の不要ファイル
+.DS_Store
+
+# エディタ関連
+.vscode/
+.idea/
