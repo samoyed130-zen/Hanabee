@@ -500,12 +500,26 @@ async function getJSON(url){
     const nowT = Date.now();
     const currentEntry = { name: (localStorage.getItem(PLAYER_NAME_KEY)||'YOU').slice(0,16), score, maxCombo, t: nowT };
     if (!Array.isArray(list)) list = [];
-    let hasCurrent = list.some(e => e && e.name===currentEntry.name && e.score===currentEntry.score && e.maxCombo===currentEntry.maxCombo && Math.abs((e.t||0) - nowT) < 3000);
-    if (!hasCurrent) {
-      list.push(currentEntry);
+
+    // If same (name,score,maxCombo) already exists in remote list, don't push a duplicate
+    const hasSameTriple = list.some(e => e && e.name===currentEntry.name && e.score===currentEntry.score && e.maxCombo===currentEntry.maxCombo);
+    if (!hasSameTriple) list.push(currentEntry);
+
+    // De-duplicate by (name,score,maxCombo). For duplicates, keep the older timestamp so sorting (oldest first) is stable.
+    const merged = new Map();
+    for (const e of list) {
+      if (!e) continue;
+      const key = `${e.name}|${e.score}|${e.maxCombo}`;
+      const prev = merged.get(key);
+      // choose older timestamp (stable ordering rule)
+      if (!prev || (typeof e.t==='number' && e.t < prev.t)) {
+        merged.set(key, { name: e.name, score: e.score|0, maxCombo: e.maxCombo|0, t: typeof e.t==='number' ? e.t : nowT });
+      }
     }
-    // 最新の並び規則：スコア降順 → maxCombo降順 → 古い順
-    list.sort((a,b)=> (b.score-a.score) || (b.maxCombo-a.maxCombo) || (a.t-b.t));
+    list = Array.from(merged.values());
+
+    // Sort: score desc → older first
+    list.sort((a,b)=> (b.score-a.score) || (a.t-b.t));
     if (typeof LEADERBOARD_SIZE==='number' && list.length>LEADERBOARD_SIZE) list.length = LEADERBOARD_SIZE;
 
     let lbHtml = '';
@@ -517,7 +531,7 @@ async function getJSON(url){
           const name = escHtml(e.name||'YOU');
           const sc   = fmtScore(e.score||0);
           const dt   = escHtml(new Date(e.t || Date.now()).toLocaleString('ja-JP'));
-          const isCurrent = e && e.name===currentEntry.name && e.score===currentEntry.score && e.maxCombo===currentEntry.maxCombo && Math.abs((e.t||0) - currentEntry.t) < 3000;
+          const isCurrent = e && e.name===currentEntry.name && e.score===currentEntry.score && e.maxCombo===currentEntry.maxCombo;
           const rowCls = isCurrent ? 'bg-yellow-200/30 rounded px-1' : '';
           return `<div class="flex items-baseline justify-between gap-3 ${rowCls}">
             <span class="tabular-nums">${rank}.</span>
