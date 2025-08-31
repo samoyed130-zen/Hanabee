@@ -28,7 +28,9 @@
     // Fit canvas to the available width of its parent, but clamp height to viewport (letterbox) while keeping 16:9.
     const stageWrap = canvas.parentElement; // the relative container
     const parentW = stageWrap ? stageWrap.clientWidth : document.documentElement.clientWidth;
-    const maxH = Math.floor(window.innerHeight * 0.8); // leave headroom for header/UI on small screens
+    const vh = (window.visualViewport && window.visualViewport.height) ? window.visualViewport.height : window.innerHeight;
+    const vw = (window.visualViewport && window.visualViewport.width)  ? window.visualViewport.width  : window.innerWidth;
+    const maxH = Math.floor(vh * 0.9); // give more headroom but fit better than 0.8
 
     const ASPECT_W = 16, ASPECT_H = 9;
     // Start from full parent width
@@ -38,6 +40,11 @@
     if (cssH > maxH) {
       cssH = maxH;
       cssW = Math.round(cssH * ASPECT_W / ASPECT_H);
+    }
+    // Ensure width does not exceed visual viewport to avoid horizontal overflow
+    if (cssW > vw) {
+      cssW = Math.floor(vw);
+      cssH = Math.round(cssW * ASPECT_H / ASPECT_W);
     }
 
     // Apply CSS size before reading rect so layout is up-to-date

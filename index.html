@@ -13,6 +13,16 @@
     html, body { overscroll-behavior: none; }
     /* Disable touch scrolling/zoom gestures on the game canvas */
     #stage { touch-action: none; -ms-touch-action: none; }
+    /* Orientation handling: hide game in portrait and show rotate notice */
+    main { position: relative; }
+    @media (orientation: portrait) {
+      #gameWrap { display: none; }
+      #rotateNotice { display: grid; }
+    }
+    @media (orientation: landscape) {
+      #gameWrap { display: block; }
+      #rotateNotice { display: none; }
+    }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-dvh">
@@ -28,7 +38,7 @@
 
   <!-- Main Stage -->
   <main class="relative max-w-5xl mx-auto px-4">
-    <div class="relative rounded-xl overflow-hidden ring-1 ring-white/10">
+    <div id="gameWrap" class="relative rounded-xl overflow-hidden ring-1 ring-white/10">
       <canvas id="stage" class="w-full bg-slate-900"></canvas>
       <!-- particles layer for effects -->
       <div id="particles" class="pointer-events-none absolute inset-0"></div>
@@ -86,7 +96,13 @@
         </div>
       </div>
     </div>
-
+    <!-- Portrait orientation notice (shown only in portrait) -->
+    <div id="rotateNotice" class="hidden absolute inset-0 grid place-items-center text-center px-6">
+      <div class="bg-black/70 text-slate-100 rounded-2xl p-6 border border-white/10 max-w-sm mx-auto">
+        <div class="text-lg font-bold mb-1">横向きでプレイしてください</div>
+        <div class="text-sm opacity-80">スマホの縦持ちでは画面が見切れるため、横向きにしてお楽しみください。</div>
+      </div>
+    </div>
   </main>
 
   <!-- Game description section -->
