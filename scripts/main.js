@@ -25,6 +25,25 @@
   const fxctx = fx.getContext('2d');
 
   function resize() {
+    // Fit canvas to the available width of its parent, but clamp height to viewport (letterbox) while keeping 16:9.
+    const stageWrap = canvas.parentElement; // the relative container
+    const parentW = stageWrap ? stageWrap.clientWidth : document.documentElement.clientWidth;
+    const maxH = Math.floor(window.innerHeight * 0.8); // leave headroom for header/UI on small screens
+
+    const ASPECT_W = 16, ASPECT_H = 9;
+    // Start from full parent width
+    let cssW = Math.max(320, parentW);
+    let cssH = Math.round(cssW * ASPECT_H / ASPECT_W);
+    // If height would overflow viewport budget, shrink by height
+    if (cssH > maxH) {
+      cssH = maxH;
+      cssW = Math.round(cssH * ASPECT_W / ASPECT_H);
+    }
+
+    // Apply CSS size before reading rect so layout is up-to-date
+    canvas.style.width = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+
     const rect = canvas.getBoundingClientRect();
     canvas.width  = Math.floor(rect.width  * dpr);
     canvas.height = Math.floor(rect.height * dpr);
