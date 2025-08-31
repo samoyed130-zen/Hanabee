@@ -37,6 +37,22 @@
   addEventListener('resize', resize, { passive: true });
   resize();
 
+  // ---- Mobile: prevent scrolling/zoom gestures on the canvas ----
+  (function preventMobileScrollOnCanvas(){
+    if (!canvas) return;
+    // Prevent touchmove from scrolling the page when interacting with the canvas
+    const opts = { passive: false };
+    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); }, opts);
+
+    // Suppress iOS double-tap zoom on rapid taps (best-effort)
+    let lastTap = 0;
+    canvas.addEventListener('click', (e) => {
+      const now = Date.now();
+      if (now - lastTap < 350) e.preventDefault();
+      lastTap = now;
+    }, true);
+  })();
+
   // ---------- Game Name ----------
   const GAME_NAME = 'Hanabee';
   document.title = GAME_NAME;

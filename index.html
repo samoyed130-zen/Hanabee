@@ -2,13 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Hanabee</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .tabular-nums { font-variant-numeric: tabular-nums; }
     .chip { box-shadow: 0 6px 24px rgba(0,0,0,.25); }
     canvas { display:block; }
+    /* Prevent page bounce/scroll propagation; useful on mobile */
+    html, body { overscroll-behavior: none; }
+    /* Disable touch scrolling/zoom gestures on the game canvas */
+    #stage { touch-action: none; -ms-touch-action: none; }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-dvh">
