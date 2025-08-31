@@ -212,7 +212,7 @@ let hiScore = Number(localStorage.getItem('fireworks_hi')||0);
 
 // ---------- Remote Leaderboard (optional) ----------
 // Google Apps Script Web App URL (deploy GAS and paste the URL below). Leave empty to use local-only.
-const LB_URL = 'https://script.google.com/macros/s/AKfycbwEJ86qg3G2Z0_PzcREET8zTFSyohEax4j6r_QB3P2_lKz9vSgfLFa2ROuoCwKiWsJA/exec';
+const LB_URL = 'https://script.google.com/macros/s/AKfycbx-IYAVoOjFsVVLRPfPMW6Prl7FmcnOnUlnaHp1owEjs4pnyauPlShO2NNuh5hSo6wl/exec';
 async function postJSON(url, data){
   const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
   if(!res.ok) throw new Error('HTTP '+res.status);
