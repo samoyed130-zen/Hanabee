@@ -543,19 +543,24 @@ async function getJSON(url){
     const currentEntry = { name: (localStorage.getItem(PLAYER_NAME_KEY)||'YOU').slice(0,16), score, maxCombo, t: nowT };
     if (!Array.isArray(list)) list = [];
 
-    // If same (name,score,maxCombo) already exists in remote list, don't push a duplicate
-    const hasSameTriple = list.some(e => e && e.name===currentEntry.name && e.score===currentEntry.score && e.maxCombo===currentEntry.maxCombo);
-    if (!hasSameTriple) list.push(currentEntry);
+    // (name, score) が同じものが既にあるなら追加しない（maxCombo は重複判定から除外）
+    const hasSamePair = list.some(e => e && e.name === currentEntry.name && (e.score|0) === (currentEntry.score|0));
+    if (!hasSamePair) list.push(currentEntry);
 
-    // De-duplicate by (name,score,maxCombo). For duplicates, keep the older timestamp so sorting (oldest first) is stable.
+    // (name, score) 単位で重複排除。古い t を優先して保持（表示順の安定化）
     const merged = new Map();
     for (const e of list) {
       if (!e) continue;
-      const key = `${e.name}|${e.score}|${e.maxCombo}`;
+      const key = `${e.name}|${e.score|0}`;
       const prev = merged.get(key);
-      // choose older timestamp (stable ordering rule)
-      if (!prev || (typeof e.t==='number' && e.t < prev.t)) {
-        merged.set(key, { name: e.name, score: e.score|0, maxCombo: e.maxCombo|0, t: typeof e.t==='number' ? e.t : nowT });
+      const normalized = {
+        name: e.name,
+        score: (e.score|0),
+        maxCombo: (e.maxCombo|0),
+        t: (typeof e.t === 'number' ? e.t : nowT)
+      };
+      if (!prev || normalized.t < prev.t) {
+        merged.set(key, normalized);
       }
     }
     list = Array.from(merged.values());
