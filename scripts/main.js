@@ -20,8 +20,17 @@
   const ctx = canvas.getContext('2d');
   const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
 
-  // --- Block game runtime in portrait to avoid invalid sizes/errors ---
-  const isPortrait = () => window.matchMedia && window.matchMedia('(orientation: portrait)').matches;
+  // より堅牢な縦持ち判定
+  const isPortrait = () => {
+    if (window.matchMedia) {
+      try { return window.matchMedia('(orientation: portrait)').matches; } catch(_) {}
+    }
+    if (screen && screen.orientation && typeof screen.orientation.type === 'string') {
+      return /^portrait/i.test(screen.orientation.type);
+    }
+    // Fallback: viewport 比較
+    return (window.innerHeight || 0) >= (window.innerWidth || 0);
+  };
   if (isPortrait()) {
     // On rotating to landscape, refresh once to init proper sizes/state
     const reloadIfLandscape = () => { if (!isPortrait()) location.reload(); };
@@ -57,6 +66,13 @@
       cssH = Math.round(cssW * ASPECT_H / ASPECT_W);
     }
 
+    // 0×0 回避（縦持ちで display:none 等の時）
+    if (cssW < 2 || cssH < 2) {
+      canvas.style.width = '1px';
+      canvas.style.height = '1px';
+      canvas.width = 1; canvas.height = 1;
+      return;
+    }
     // Apply CSS size before reading rect so layout is up-to-date
     canvas.style.width = cssW + 'px';
     canvas.style.height = cssH + 'px';
@@ -88,6 +104,57 @@
       lastTap = now;
     }, true);
   })();
+
+  // ---- Abort game if rotated to portrait during runtime ----
+  let abortedForPortrait = false;
+  function abortForPortrait(){
+    if (abortedForPortrait) return;
+    abortedForPortrait = true;
+
+    // 停止＆クリーンアップ
+    playing = false;
+    clearAllPendingTimers();     // 全遅延コールバック停止
+    overlaySession++;            // 古いUI更新を無効化
+    // 画面と状態のクリア（ユーザーに終了が伝わるよう完全リセット）
+    gameTime = GAME_TIME_TOTAL;
+    score = 0;
+    combo = 0; maxCombo = 0;
+    targets.length = 0;
+    particles.length = 0;
+    try { fxctx.clearRect(0,0,fx.width/dpr,fx.height/dpr); } catch(_) {}
+    try { ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr); } catch(_) {}
+    if (soloUI.time)  soloUI.time.textContent = zpad(GAME_TIME_TOTAL, 3);
+    if (soloUI.score) soloUI.score.textContent = zpad(0, 8);
+    if (soloUI.combo) soloUI.combo.textContent = zpad(0, 2);
+    stopRAF = true; // 以降のフレーム更新を止める（InvalidStateError 防止）
+
+    // 中断オーバーレイ（スコア送信はしない）
+    if (soloUI && soloUI.ovTitle && soloUI.ovMsg && soloUI.ovStats) {
+      soloUI.ovTitle.textContent = '中断';
+      soloUI.ovMsg.textContent = '端末が縦向きに切り替わりました。横向きに変更後、リロードしてお楽しみください。';
+      soloUI.ovStats.classList.add('hidden');
+      soloUI.ovStats.innerHTML = '';
+    }
+    setRestartEnabled(false);    // ボタン無効化
+    overlayAction = () => {};    // 何もしない
+    toggleOverlay(true);
+
+    // 横向きに戻ったら自動リロードして初期化からやり直し
+    const reloadIfLandscape = () => { if (!isPortrait()) location.reload(); };
+    window.addEventListener('orientationchange', reloadIfLandscape, { passive: true });
+    window.addEventListener('resize', reloadIfLandscape, { passive: true });
+  }
+
+  // 監視：ランタイム中に縦持ちになったら中断
+  window.addEventListener('orientationchange', () => {
+    const portrait = window.matchMedia && window.matchMedia('(orientation: portrait)').matches;
+    if (portrait) abortForPortrait();
+  }, { passive: true });
+
+  window.addEventListener('resize', () => {
+    const portrait = window.matchMedia && window.matchMedia('(orientation: portrait)').matches;
+    if (portrait) abortForPortrait();
+  }, { passive: true });
 
   // ---------- Game Name ----------
   const GAME_NAME = 'Hanabee';
@@ -904,11 +971,14 @@ function onHit(ix){
   else if (/\bdebug=1\b/.test(location.search)) enterDebug(); else enterSolo();
 
   // ---------- Main Loop ----------
+  let stopRAF = false; // true で以降の requestAnimationFrame を止める
   let lastTime = now(), frames=0, fpsTime=0;
   function loop(){
     const t = now();
     const dt = clamp((t - lastTime)/1000, 0, 0.05);
     lastTime = t;
+    // 縦持ちに切り替わったら即中断（次のフレームは予約しない）
+    if (isPortrait()) { abortForPortrait(); return; }
 
     // FPS
     frames++; fpsTime += dt;
@@ -958,7 +1028,9 @@ function onHit(ix){
     drawParticlesOnFx();
 
     // 5) FXキャンバスをメインに合成
-    ctx.drawImage(fx, 0, 0, fx.width/dpr, fx.height/dpr);
+    if (fx.width > 0 && fx.height > 0) {
+      ctx.drawImage(fx, 0, 0, fx.width/dpr, fx.height/dpr);
+    }
 
     // Debug: 自動花火
     if ((ui.auto?.checked ?? false) && Math.random() < 0.05){
@@ -966,7 +1038,7 @@ function onHit(ix){
       addFirework(rand(0, rect.width), rand(rect.height*0.2, rect.height*0.8));
     }
 
-    requestAnimationFrame(loop);
+    if (!stopRAF) requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
 
