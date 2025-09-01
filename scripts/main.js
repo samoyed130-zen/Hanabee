@@ -20,6 +20,16 @@
   const ctx = canvas.getContext('2d');
   const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
 
+  // --- Block game runtime in portrait to avoid invalid sizes/errors ---
+  const isPortrait = () => window.matchMedia && window.matchMedia('(orientation: portrait)').matches;
+  if (isPortrait()) {
+    // On rotating to landscape, refresh once to init proper sizes/state
+    const reloadIfLandscape = () => { if (!isPortrait()) location.reload(); };
+    window.addEventListener('orientationchange', reloadIfLandscape, { passive: true });
+    window.addEventListener('resize', reloadIfLandscape, { passive: true });
+    return; // stop initialization while in portrait
+  }
+
   // ---------- Offscreen canvas for particles/trails ----------
   const fx = document.createElement('canvas');
   const fxctx = fx.getContext('2d');
