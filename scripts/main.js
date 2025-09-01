@@ -20,6 +20,7 @@
   const ctx = canvas.getContext('2d');
   const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
 
+  // --- Block game runtime in portrait to avoid invalid sizes/errors ---
   // より堅牢な縦持ち判定
   const isPortrait = () => {
     if (window.matchMedia) {
@@ -126,7 +127,6 @@
     if (soloUI.time)  soloUI.time.textContent = zpad(GAME_TIME_TOTAL, 3);
     if (soloUI.score) soloUI.score.textContent = zpad(0, 8);
     if (soloUI.combo) soloUI.combo.textContent = zpad(0, 2);
-    stopRAF = true; // 以降のフレーム更新を止める（InvalidStateError 防止）
 
     // 中断オーバーレイ（スコア送信はしない）
     if (soloUI && soloUI.ovTitle && soloUI.ovMsg && soloUI.ovStats) {
@@ -139,6 +139,7 @@
     overlayAction = () => {};    // 何もしない
     toggleOverlay(true);
 
+    stopRAF = true; // InvalidStateError 防止：以降のループを停止
     // 横向きに戻ったら自動リロードして初期化からやり直し
     const reloadIfLandscape = () => { if (!isPortrait()) location.reload(); };
     window.addEventListener('orientationchange', reloadIfLandscape, { passive: true });
