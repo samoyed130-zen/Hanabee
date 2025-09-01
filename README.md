@@ -37,7 +37,7 @@ Hanabee は、ブラウザ上でプレイ可能な花火連鎖アクションゲ
 
 ## 動作環境
 - MacBook Air (M4, macOS Sequoia 15.6.1): Safari / Chrome / Firefox / Opera にて動作確認済み
-- iPhone 16e (iOS 18.5): 動作確認済み。横持ちでのみプレイ可能
+- iPhone 16e (iOS 18.5): Safari にて動作確認済み。横持ちでのみプレイ可能
 
 ---
 
